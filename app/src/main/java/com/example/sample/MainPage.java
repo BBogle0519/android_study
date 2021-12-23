@@ -11,6 +11,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,7 +42,9 @@ import com.google.android.material.navigation.NavigationView;
 
 import org.jetbrains.annotations.NotNull;
 
-public class MainPage extends AppCompatActivity implements SensorEventListener, OnMapReadyCallback {
+import java.io.Serializable;
+
+public class MainPage extends AppCompatActivity implements SensorEventListener, OnMapReadyCallback{
     //각각 객체 생성
     Toolbar toolbar;    //툴바
     DrawerLayout mDrawerLayout;
@@ -89,9 +92,9 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
         navigationView = findViewById(R.id.nav_view);
 
         //네비게이션 헤더 설정 및 동적 요소 추가
-        LinearLayout navigation_container = (LinearLayout) LayoutInflater.from(this).inflate(R.layout.navi_header,null);
+        LinearLayout navigation_container = (LinearLayout) LayoutInflater.from(this).inflate(R.layout.navi_header, null);
         navigation_container.setBackground(getResources().getDrawable(R.color.colorPrimaryDark));
-        navigation_container.setPadding(30,70,30,50);
+        navigation_container.setPadding(30, 70, 30, 50);
         navigation_container.setOrientation(LinearLayout.VERTICAL);
         navigation_container.setGravity(Gravity.BOTTOM);
         navigation_container.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -105,8 +108,13 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
         tv_username.setTextSize(17);
         //tv_username.setTypeface(typeface);
 
-        tv_username.setText("테스트중");
-
+        if (TextUtils.isEmpty(tv_username.getText())) {
+            tv_username.setText("로그인이 필요합니다.");
+        } else {
+            Intent intent = getIntent();
+            RegistData reg_info = (RegistData) intent.getSerializableExtra("reg_info");
+            tv_username.setText(reg_info.getUser_id() + " 님");
+        }
         navigation_container.addView(tv_username);
 
         //헤더 적용
@@ -121,7 +129,7 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
             int id = menuItem.getItemId();
             String title = menuItem.getTitle().toString();
 
-            if (id == R.id.account) { 
+            if (id == R.id.account) {
                 Intent intent = new Intent(getApplication(), Regist.class);
                 startActivity(intent);
                 Toast.makeText(context, title + ": 계정 정보를 확인합니다.", Toast.LENGTH_SHORT).show();
@@ -134,6 +142,15 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
             return true;
         });
     }
+
+    @Override
+    public void onBackPressed() {
+        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+            mDrawerLayout.closeDrawers();
+        } else
+            super.onBackPressed();
+    }
+
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {

@@ -1,6 +1,7 @@
 package com.example.sample;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -10,7 +11,11 @@ import android.widget.EditText;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.gson.Gson;
+
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -37,7 +42,13 @@ public class Login extends AppCompatActivity {
         btn_regist = findViewById(R.id.login_btn_regist);
         service = RetrofitClient.getClient().create(ApiService.class);
 
-        btn_ok.setOnClickListener(view -> attemptLogin());
+        btn_ok.setOnClickListener(view -> {
+            // 로그인 처리 attemptLogin() 호출
+            attemptLogin();
+            Intent intent = new Intent(getApplicationContext(), MainPage.class);
+            startActivity(intent);
+            //finish();
+        });
 
         btn_cancel.setOnClickListener(view -> finish());
 
@@ -83,11 +94,36 @@ public class Login extends AppCompatActivity {
             @Override
             public void onResponse(@NotNull Call<LoginResponse> call, @NotNull Response<LoginResponse> response) {
                 LoginResponse result = response.body();
+                // Log.e("onResponse\n", new Gson().toJson(result));
+                if (response.code() == 200) {
+                    // Log.e("response.code == 200\n", "getAccess: " + String.valueOf(result.getAccess()));
+                    // Log.e("response.code == 200\n", "getRefresh: " + String.valueOf(result.getRefresh()));
+
+                    // SharedPreferences로 토큰 저장
+                    // 저장 경로: data/data/패키지명/shared_prefs/SharedPreference명.xml
+                    String access_token = result.getAccess();
+                    String refresh_token = result.getRefresh();
+
+                    SharedPreferences prefrences = getSharedPreferences("token", MODE_PRIVATE);
+                    SharedPreferences.Editor editor = prefrences.edit();
+                    editor.putString("access", access_token);
+                    editor.putString("refresh", refresh_token);
+                    editor.commit();
+                    // Log.e("Login\n", "토큰 저장 완료");
+
+                    // 로그인한 사용자의 화면으로 변경
+
+
+
+                } else if (response.code() == 404) {
+                    // 일치하는 아이디, 비밀번호 확인하도록 처리
+                    Log.e("response.code == 404\n", String.valueOf(response.code()));
+                }
             }
 
             @Override
             public void onFailure(@NotNull Call<LoginResponse> call, @NotNull Throwable t) {
-                Log.e("startLogin", t.getMessage());
+                Log.e("onFailure: 5xx 오류", t.getMessage());
             }
         });
     }

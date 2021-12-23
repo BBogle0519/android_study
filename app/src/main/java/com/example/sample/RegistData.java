@@ -2,9 +2,10 @@ package com.example.sample;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 
-public class RegistData {
+public class RegistData implements Serializable {
     @SerializedName("user_id")
     private String user_id;
 
@@ -26,7 +27,7 @@ public class RegistData {
 //    @SerializedName("user_st")        회원상태 (장고에서 자동생성)
 //    private int user_st;
 
-    public RegistData(String user_id, String user_pw, String user_nm, int user_ph, String user_email){
+    public RegistData(String user_id, String user_pw, String user_nm, int user_ph, String user_email) {
         this.user_id = user_id;
         this.user_pw = user_pw;
         this.user_nm = user_nm;

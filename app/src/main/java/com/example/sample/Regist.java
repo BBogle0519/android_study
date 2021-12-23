@@ -16,6 +16,8 @@ import com.google.gson.Gson;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -149,25 +151,22 @@ public class Regist extends AppCompatActivity {
                 Log.e("startRegist", " onResponse 접근");
                 Log.e("response.getMessage", response.message());
                 Log.e("response.getCode()", String.valueOf(response.code()));
-
+                
                 if (response.isSuccessful()) {
+                    // 회원가입 성공시 로그인 화면 출력
                     RegistData result = response.body();
-                    Log.e("onResponse: 성공, 결과\n", new Gson().toJson(result));
-
-                    //naviLogin 회원가입 성공 시 네비게이션 드로어에 로그인 처리
-                    naviLogin(data);
-
+                    Log.e("onResponse: 가입 성공, 결과\n", new Gson().toJson(result));
                 } else {
                     // 회원가입 실패시 회원가입 화면 재출력
+                    Log.e("onResponse: \n", "가입 실패");
                     Intent intent = new Intent(getApplicationContext(), Regist.class);
                     startActivity(intent);
-                    finish();
                 }
+                finish();
 
                 // 로그인화면으로 이동
-//                Intent intent = new Intent(getApplicationContext(), Login.class);
-//                startActivity(intent);
-//                finish();
+                Intent intent = new Intent(getApplicationContext(), Login.class);
+                startActivity(intent);
             }
 
             @Override
@@ -179,7 +178,7 @@ public class Regist extends AppCompatActivity {
     }
 
     private void naviLogin(RegistData data) {
-
+        Log.e("naviLogin: \n", data.getUser_id() + " " + data.getUser_nm());
     }
 
     private boolean isIdValid(String id) {  //아이디 글자 수 제한

@@ -3,31 +3,38 @@ package com.example.sample;
 import com.google.gson.annotations.SerializedName;
 
 public class LoginResponse {
-    @SerializedName("code")
-    private int code;
-
-    @SerializedName("message")
-    private String message;
-
-    @SerializedName("user_no")
-    private String user_no;
+    @SerializedName("status")
+    private String status;
 
     @SerializedName("user_id")
     private String user_id;
 
-    public int getCode() {
-        return code;
-    }
+    @SerializedName("password")
+    private String password;
 
-    public String getMessage() {
-        return message;
+    @SerializedName("access")
+    private String access;
+
+    @SerializedName("refresh")
+    private String refresh;
+
+    public String getStatus() {
+        return status;
     }
 
     public String getUser_id() {
         return user_id;
     }
 
-    public String getUser_no() {
-        return user_no;
+    public String getPassword() {
+        return password;
+    }
+
+    public String getAccess() {
+        return access;
+    }
+
+    public String getRefresh() {
+        return refresh;
     }
 }

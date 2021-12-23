@@ -4,13 +4,13 @@ import com.google.gson.annotations.SerializedName;
 
 public class LoginData {
     @SerializedName("user_id")
-    String user_id;
+    public String user_id;
 
-    @SerializedName("user_pw")
-    String user_pw;
+    @SerializedName("password")
+    public String password;
 
-    public LoginData(String user_id, String user_pw) {
+    public LoginData(String user_id, String password) {
         this.user_id = user_id;
-        this.user_pw = user_pw;
+        this.password = password;
     }
 }
