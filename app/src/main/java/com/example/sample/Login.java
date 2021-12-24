@@ -11,11 +11,7 @@ import android.widget.EditText;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.gson.Gson;
-
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -112,7 +108,6 @@ public class Login extends AppCompatActivity {
                     // Log.e("Login\n", "토큰 저장 완료");
 
                     // 로그인한 사용자의 화면으로 변경
-
 
 
                 } else if (response.code() == 404) {

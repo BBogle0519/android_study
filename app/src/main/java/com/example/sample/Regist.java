@@ -7,7 +7,6 @@ import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,8 +14,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.gson.Gson;
 
 import org.jetbrains.annotations.NotNull;
-
-import java.io.Serializable;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -151,7 +148,7 @@ public class Regist extends AppCompatActivity {
                 Log.e("startRegist", " onResponse 접근");
                 Log.e("response.getMessage", response.message());
                 Log.e("response.getCode()", String.valueOf(response.code()));
-                
+
                 if (response.isSuccessful()) {
                     // 회원가입 성공시 로그인 화면 출력
                     RegistData result = response.body();

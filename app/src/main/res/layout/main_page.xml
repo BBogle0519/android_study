@@ -38,14 +38,14 @@
         </androidx.appcompat.widget.Toolbar>
 
         <TextView
-            android:id="@+id/text1"
+            android:id="@+id/subtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Running"
+            android:text="subtitle"
             android:textSize="20sp" />
 
         <TextView
-            android:id="@+id/text2"
+            android:id="@+id/current_step"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="20sp" />
@@ -53,20 +53,26 @@
         <ProgressBar
             android:id="@+id/progressBar"
             style="?android:attr/progressBarStyleHorizontal"
-            android:layout_marginHorizontal="20dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:progress="0"
-            android:max="10000"/>
+            android:layout_marginHorizontal="20dp"
+            android:max="10000"
+            android:progress="0" />
 
         <fragment
             android:id="@+id/map1"
             android:name="com.google.android.gms.maps.SupportMapFragment"
-            android:layout_gravity="center"
-            android:layout_marginHorizontal="10dp"
             android:layout_width="match_parent"
             android:layout_height="80dp"
+            android:layout_gravity="center"
+            android:layout_marginHorizontal="10dp"
             tools:context=".MapsActivity" />
+
+        <TextView
+            android:id="@+id/total_step"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp" />
 
         <Button
             android:id="@+id/btn2"

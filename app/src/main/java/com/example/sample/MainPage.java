@@ -4,7 +4,6 @@ package com.example.sample;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -14,7 +13,6 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -42,20 +40,22 @@ import com.google.android.material.navigation.NavigationView;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
-
-public class MainPage extends AppCompatActivity implements SensorEventListener, OnMapReadyCallback{
+public class MainPage extends AppCompatActivity implements SensorEventListener, OnMapReadyCallback {
     //각각 객체 생성
     Toolbar toolbar;    //툴바
     DrawerLayout mDrawerLayout;
     Context context = this;
     NavigationView navigationView;
-    TextView stepCount;    //현재 걸음수
+    TextView currentView;    // 현재 걸음 수 텍스트뷰
+    TextView totalView;    // 총 걸음 수 텍스트 뷰
     Button course;      //코스추천으로 이동 (임시)
     ProgressBar progressBar; //프로그래스바 (목표 걸음수)
     GoogleMap mMap;     //지도 (추후에 네이버 지도랑 비교하여 유리한것 사용하기)
     SensorManager sensorManager;
-    Sensor stepCountSensor;
+    Sensor stepCountSensor; //TYPE_STEP_COUNTER, TYPE_STEP_DETECTOR 센서 두 종류 중 전자 선택 (앱 종료중에도 측정하기 위함)
+
+    int counterStep = 0;    // 센서에 누적된 총 걸음 수
+    int currentStep = 0;    // 현재 걸음 수
 
     @Override
     protected void onCreate(@Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
@@ -63,7 +63,8 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
         setContentView(R.layout.main_page);
 
         progressBar = findViewById(R.id.progressBar);
-        stepCount = findViewById(R.id.text2);
+        currentView = findViewById(R.id.current_step);
+        totalView = findViewById(R.id.total_step);
         course = findViewById(R.id.btn2);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map1);
 
@@ -119,7 +120,6 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
 
         //헤더 적용
         navigationView.addHeaderView(navigation_container);
-
 
         // 네비게이션 계정 메뉴 터치시
         navigationView.setNavigationItemSelectedListener(menuItem -> { // 네비게이션의 버튼 클릭 시 이벤트
@@ -178,10 +178,23 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {  // 센서가 동작을 감지하면 onSensorChanged() 함수로 전달
         if (sensorEvent.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
-            stepCount.setText(String.valueOf(sensorEvent.values[0]));
+            //stepcountsenersor는 앱이 꺼지더라도 초기화 되지않는다. 그러므로 우리는 초기값을 가지고 있어야한다.
+            if (counterStep < 1) {
+                // initial value
+                counterStep = (int) sensorEvent.values[0];
+            }
+            //총 누적 걸음 - 리셋 안된 값 (앱 실행부터 초기화 한번도 안하면 총 누적걸음이 현재 걸음)
+            currentStep = (int) sensorEvent.values[0] - counterStep;
+            // 24시간(00:00 ~ 24:00) 측정하여 00:00시 마다 현재 걸음 수 0으로 표시, DB에 값 저장 (후에 확장하여 이동거리, 소비 칼로리 등 정보 추가하여 저장)
+            // 정시마다 실행되는 서비스엔 Timer보다 AlarmManager가 적합. (https://greedy0110.tistory.com/69)
 
-            // 나중에 캐스팅(int) 사용 해도 되는지 확인하기
-            progressBar.setProgress(Integer.parseInt(String.valueOf(sensorEvent.values[0])));
+
+            // 당일 걸음 수, 누적 걸음 수 표시
+            currentView.setText(String.valueOf(currentStep));
+            totalView.setText((int) sensorEvent.values[0]);
+
+            // 프로그래스바에 표시
+            progressBar.setProgress(currentStep);
         }
     }
 
