@@ -15,10 +15,10 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyD8DJLcNZMVxAhEjH25LmTTzE4gXyUn4JE"
-            />
+            android:value="AIzaSyD8DJLcNZMVxAhEjH25LmTTzE4gXyUn4JE" />
 
-        <activity android:name=".Splash"
+        <activity
+            android:name=".Splash"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,9 +26,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainPage"/>
-        <activity android:name=".Regist"/>
-        <activity android:name=".Login"/>
+        <activity android:name=".MainPage" />
+        <activity android:name=".Regist" />
+        <activity android:name=".Login" />
+
+        <receiver
+            android:name=".StepRecord"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="action.daily_step" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

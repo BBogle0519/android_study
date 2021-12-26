@@ -10,4 +10,7 @@ public interface ApiService {
 
     @POST("/account/Login/")
     Call<LoginResponse> login_post(@Body LoginData data);
+
+    @POST("/account/Step/")
+    Call<StepResponse> step_post(@Body StepData data);
 }
