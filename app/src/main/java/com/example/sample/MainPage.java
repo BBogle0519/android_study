@@ -5,6 +5,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.hardware.Sensor;
@@ -84,9 +85,14 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
 
         if (stepCountSensor == null) { // 걸음수 측정 센서가 없는 경우 출력
             // AVD 에선 센서가 없으므로 임의값으로 테스트
+            SharedPreferences pref = getSharedPreferences("token", MODE_PRIVATE);
+            int user_id_pk = pref.getInt("user_id_pk", 0);
+            Log.e("stepCountSensor", "user_id_pk:" + user_id_pk);
+
             Intent resetIntent = new Intent(context, StepRecord.class);
             currentStep = 5000; // test value
             resetIntent.putExtra("daily_step", currentStep);
+            resetIntent.putExtra("user_id_pk", user_id_pk);
             sendBroadcast(resetIntent);
 
             Log.e("stepCountSensor", "걸음 측정 센서 없음.");
@@ -212,8 +218,12 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
             // AlarmManager TEST
             AlarmManager resetAlarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
-            // StepRecord에 측정된 하루치 걸음 수 전송
+            // StepRecord에 user_id_pk, 측정된 하루치 걸음 수 전송
+            SharedPreferences pref = getSharedPreferences("token", MODE_PRIVATE);
+            int user_id_pk = pref.getInt("user_id_pk", 0);
+
             Intent resetIntent = new Intent(context, StepRecord.class);
+            resetIntent.putExtra("user_id_pk", user_id_pk);
             resetIntent.putExtra("daily_step", currentStep);
 
             // PendingIntent(보류 인텐트)를 사용하여 지정한 시간에 intent 실행

@@ -145,17 +145,17 @@ public class Regist extends AppCompatActivity {
         service.regist_post(data).enqueue(new Callback<RegistData>() {
             @Override
             public void onResponse(@NotNull Call<RegistData> call, @NotNull Response<RegistData> response) {
-                Log.e("startRegist", " onResponse 접근");
-                Log.e("response.getMessage", response.message());
-                Log.e("response.getCode()", String.valueOf(response.code()));
+                //Log.e("startRegist", " onResponse 접근");
+                //Log.e("regist", response.message());
+                //Log.e("regist, String.valueOf(response.code()));
 
                 if (response.isSuccessful()) {
                     // 회원가입 성공시 로그인 화면 출력
                     RegistData result = response.body();
-                    Log.e("onResponse: 가입 성공, 결과\n", new Gson().toJson(result));
+                    Log.e("regist: 2xx\n", new Gson().toJson(result));
                 } else {
                     // 회원가입 실패시 회원가입 화면 재출력
-                    Log.e("onResponse: \n", "가입 실패");
+                    Log.e("regist: 4xx\n", String.valueOf(response.code()));
                     Intent intent = new Intent(getApplicationContext(), Regist.class);
                     startActivity(intent);
                 }
@@ -169,7 +169,7 @@ public class Regist extends AppCompatActivity {
             @Override
             public void onFailure(@NotNull Call<RegistData> call, @NotNull Throwable t) {
                 //Toast.makeText(Regist.this, "회원가입 에러 발생", Toast.LENGTH_SHORT).show();
-                Log.e("회원가입 에러 발생", t.getMessage());
+                Log.e("regist: 5xx\n", t.getMessage());
             }
         });
     }

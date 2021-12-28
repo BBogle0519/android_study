@@ -3,6 +3,9 @@ package com.example.sample;
 import com.google.gson.annotations.SerializedName;
 
 public class LoginResponse {
+    @SerializedName("id")
+    private int id;
+
     @SerializedName("status")
     private String status;
 
@@ -17,6 +20,10 @@ public class LoginResponse {
 
     @SerializedName("refresh")
     private String refresh;
+
+    public int getId() {
+        return id;
+    }
 
     public String getStatus() {
         return status;

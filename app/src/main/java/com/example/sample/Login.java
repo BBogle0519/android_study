@@ -1,5 +1,6 @@
 package com.example.sample;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -25,6 +26,7 @@ public class Login extends AppCompatActivity {
     Button btn_cancel;
     Button btn_regist;
     ApiService service;
+    Context context = this;
 
     @Override
     protected void onCreate(@Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
@@ -91,34 +93,37 @@ public class Login extends AppCompatActivity {
             public void onResponse(@NotNull Call<LoginResponse> call, @NotNull Response<LoginResponse> response) {
                 LoginResponse result = response.body();
                 // Log.e("onResponse\n", new Gson().toJson(result));
-                if (response.code() == 200) {
-                    // Log.e("response.code == 200\n", "getAccess: " + String.valueOf(result.getAccess()));
-                    // Log.e("response.code == 200\n", "getRefresh: " + String.valueOf(result.getRefresh()));
+                if (response.isSuccessful()) {
+                    // Log.e("Login: 2xx\n", "getAccess: " + String.valueOf(result.getAccess()));
+                    // Log.e("Login: 2xx\n", "getRefresh: " + String.valueOf(result.getRefresh()));
 
                     // SharedPreferences로 토큰 저장
                     // 저장 경로: data/data/패키지명/shared_prefs/SharedPreference명.xml
+                    int user_id_pk = result.getId();
                     String access_token = result.getAccess();
                     String refresh_token = result.getRefresh();
 
                     SharedPreferences prefrences = getSharedPreferences("token", MODE_PRIVATE);
                     SharedPreferences.Editor editor = prefrences.edit();
+
+                    // 임시로 user_pk 저장했는데 보안상 저장하지말고 서버단에서 토큰으로 정보 검색하여 처리하는게 맞는듯하니 확인하고 후에 수정
+                    editor.putInt("user_id_pk", user_id_pk);
                     editor.putString("access", access_token);
                     editor.putString("refresh", refresh_token);
                     editor.commit();
-                    // Log.e("Login\n", "토큰 저장 완료");
+                    Log.e("Login: 2xx\n", "토큰 저장 완료");
 
                     // 로그인한 사용자의 화면으로 변경
 
-
-                } else if (response.code() == 404) {
+                } else {
                     // 일치하는 아이디, 비밀번호 확인하도록 처리
-                    Log.e("response.code == 404\n", String.valueOf(response.code()));
+                    Log.e("Login: 4xx\n", String.valueOf(response.code()));
                 }
             }
 
             @Override
             public void onFailure(@NotNull Call<LoginResponse> call, @NotNull Throwable t) {
-                Log.e("onFailure: 5xx 오류", t.getMessage());
+                Log.e("Login: 5xx", t.getMessage());
             }
         });
     }

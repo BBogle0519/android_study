@@ -3,7 +3,10 @@ package com.example.sample;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.util.Log;
+
+import com.google.gson.Gson;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -11,15 +14,18 @@ import retrofit2.Response;
 
 public class StepRecord extends BroadcastReceiver {
     ApiService service;
-    int daily_step = 0;
+    int user_id_pk;
+    int daily_step;
 
     @Override
     public void onReceive(Context context, Intent intent) {
         service = RetrofitClient.getClient().create(ApiService.class);
+        user_id_pk = intent.getIntExtra("user_id_pk", 0);
         daily_step = intent.getIntExtra("daily_step", 0);
-        stepRecord(new StepData(daily_step));
+        stepRecord(new StepData(user_id_pk, daily_step));
 
-        // Log.e("onReceive\n", "getIntExtra: " + daily_step);
+        Log.e("onReceive\n", "getID: " + user_id_pk);
+        Log.e("onReceive\n", "getSTEP: " + daily_step);
     }
 
     private void stepRecord(StepData data) {
@@ -28,14 +34,15 @@ public class StepRecord extends BroadcastReceiver {
             @Override
             public void onResponse(Call<StepResponse> call, Response<StepResponse> response) {
                 StepResponse result = response.body();
-                // Log.e("onResponse\n", new Gson().toJson(result));
+                Log.e("onResponse\n", new Gson().toJson(result));
+                Log.e("response.code()\n", String.valueOf(response.code()));
 
-                if (response.code() == 200) {
-                    Log.e("stepRecord 200\n", "getStatus: " + result.getStatus());
+                if (response.isSuccessful()) {
+                    Log.e("stepRecord 2xx\n", "response.code(): " + response.code());
 
-                } else if (response.code() == 404) {
+                } else {
                     // 걸음수 저장 실패
-                    Log.e("stepRecord 404\n", "response.code(): " + response.code());
+                    Log.e("stepRecord 4xx\n", "response.code(): " + response.code());
                 }
 
             }
