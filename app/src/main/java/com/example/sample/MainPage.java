@@ -43,7 +43,6 @@ import com.google.android.material.navigation.NavigationView;
 
 import org.jetbrains.annotations.NotNull;
 
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -170,7 +169,6 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
         } else
             super.onBackPressed();
     }
-
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {

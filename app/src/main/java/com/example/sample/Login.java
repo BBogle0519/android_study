@@ -99,14 +99,17 @@ public class Login extends AppCompatActivity {
 
                     // SharedPreferences로 토큰 저장
                     // 저장 경로: data/data/패키지명/shared_prefs/SharedPreference명.xml
+
                     int user_id_pk = result.getId();
                     String access_token = result.getAccess();
                     String refresh_token = result.getRefresh();
+                    Log.e("Login\n", "user_id_pk: " + user_id_pk);
 
                     SharedPreferences prefrences = getSharedPreferences("token", MODE_PRIVATE);
                     SharedPreferences.Editor editor = prefrences.edit();
 
                     // 임시로 user_pk 저장했는데 보안상 저장하지말고 서버단에서 토큰으로 정보 검색하여 처리하는게 맞는듯하니 확인하고 후에 수정
+                    // SharedPreferences 저장된 파일은 관리자 권한이 있으면 들어갈 수 있으나 정보를 암호화하여 저장한다면 보안이슈 해결 가능
                     editor.putInt("user_id_pk", user_id_pk);
                     editor.putString("access", access_token);
                     editor.putString("refresh", refresh_token);
