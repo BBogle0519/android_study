@@ -1,6 +1,7 @@
 
 package com.example.sample;
 
+import android.Manifest;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -63,6 +64,12 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
 
     int counterStep = 0;    // 센서에 누적된 총 걸음 수
     int currentStep = 0;    // 현재 걸음 수
+    
+    // 위치 퍼미션
+    
+    
+    
+    
 
     @Override
     protected void onCreate(@Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
@@ -72,11 +79,11 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
         progressBar = findViewById(R.id.progressBar);
         currentView = findViewById(R.id.current_step);
         totalView = findViewById(R.id.total_step);
-        course = findViewById(R.id.btn2);
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map1);
 
+        course = findViewById(R.id.btn2);
         course.setOnClickListener(view -> Toast.makeText(getApplicationContext(), "코스추천 호출", Toast.LENGTH_SHORT).show());
 
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map1);
         mapFragment.getMapAsync(this);
 
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -260,4 +267,8 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
         mMap.addMarker(makerOptions);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(SEOUL, 10));
     }
+
+    // 1. 위치퍼미션 체크 및 허가
+    // 2. 현재위치 받기
+    // 3. 마커 설정 및 클릭등 이벤트 설정
 }

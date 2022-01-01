@@ -2,8 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.sample">
 
-    <!--퍼미션-->
+    <!--인터넷퍼미션-->
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--위치정보퍼미션-->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <application
         android:allowBackup="true"
