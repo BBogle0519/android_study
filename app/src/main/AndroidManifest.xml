@@ -7,7 +7,7 @@
 
     <!--위치정보퍼미션-->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -30,9 +30,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity android:name=".MainPage" />
         <activity android:name=".Regist" />
         <activity android:name=".Login" />
+        <activity android:name=".Statistics" />
 
         <receiver
             android:name=".StepRecord"

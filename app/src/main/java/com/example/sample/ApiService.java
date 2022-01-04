@@ -13,4 +13,7 @@ public interface ApiService {
 
     @POST("/pedometer/Step/")
     Call<StepResponse> step_post(@Body StepData data);
+
+    @POST("/pedometer/Statistics/")
+    Call<StatisticsResponse> step_statistics(@Body StatisticsData data);
 }

@@ -64,12 +64,9 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
 
     int counterStep = 0;    // 센서에 누적된 총 걸음 수
     int currentStep = 0;    // 현재 걸음 수
-    
+
     // 위치 퍼미션
-    
-    
-    
-    
+
 
     @Override
     protected void onCreate(@Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
@@ -91,15 +88,15 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
 
         if (stepCountSensor == null) { // 걸음수 측정 센서가 없는 경우 출력
             // AVD 에선 센서가 없으므로 임의값으로 테스트
-            SharedPreferences pref = getSharedPreferences("token", MODE_PRIVATE);
-            int user_id_pk = pref.getInt("user_id_pk", 0);
-            Log.e("stepCountSensor", "user_id_pk:" + user_id_pk);
-
-            Intent resetIntent = new Intent(context, StepRecord.class);
-            currentStep = 5000; // test value
-            resetIntent.putExtra("daily_step", currentStep);
-            resetIntent.putExtra("user_id_pk", user_id_pk);
-            sendBroadcast(resetIntent);
+//            SharedPreferences pref = getSharedPreferences("token", MODE_PRIVATE);
+//            int user_id_pk = pref.getInt("user_id_pk", 0);
+//            Log.e("stepCountSensor", "user_id_pk:" + user_id_pk);
+//
+//            Intent resetIntent = new Intent(context, StepRecord.class);
+//            currentStep = 5000; // test value
+//            resetIntent.putExtra("daily_step", currentStep);
+//            resetIntent.putExtra("user_id_pk", user_id_pk);
+//            sendBroadcast(resetIntent);
 
             Log.e("stepCountSensor", "걸음 측정 센서 없음.");
         }
@@ -158,8 +155,17 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
                 Intent intent = new Intent(getApplication(), Regist.class);
                 startActivity(intent);
                 Toast.makeText(context, title + ": 계정 정보를 확인합니다.", Toast.LENGTH_SHORT).show();
+
             } else if (id == R.id.setting) { //네비게이션 설정 메뉴 터치시
                 Toast.makeText(context, title + ": 설정 정보를 확인합니다.", Toast.LENGTH_SHORT).show();
+
+            } else if (id == R.id.step_record) { //네비게이션 기록 통계 메뉴 터치시
+                SharedPreferences pref = getSharedPreferences("token", MODE_PRIVATE);
+                int user_id_pk = pref.getInt("user_id_pk", 0);
+                Intent intent = new Intent(getApplication(), Statistics.class);
+                intent.putExtra("user_id_pk", user_id_pk);
+                startActivity(intent);
+
             } else if (id == R.id.logout) { //네비게이션 로그아웃 메뉴 터치시
                 Toast.makeText(context, title + ": 로그아웃 시도중", Toast.LENGTH_SHORT).show();
             }
@@ -232,6 +238,11 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
             resetIntent.putExtra("daily_step", currentStep);
 
             // PendingIntent(보류 인텐트)를 사용하여 지정한 시간에 intent 실행
+            // FLAG_CANCEL_CURRENT : 이전에 생성한 PendingIntent 는 취소하고 새롭게 만든다.
+            // FLAG_NO_CREATE : 이미 생성된 PendingIntent 가 없다면 null 을 return 한다. 생성된 녀석이 있다면 그 PendingIntent 를 반환한다. 즉 재사용 전용이다.
+            // FLAG_ONE_SHOT : 이 flag 로 생성한 PendingIntent 는 일회용이다.
+            // FLAG_UPDATE_CURRENT : 이미 생성된 PendingIntent 가 존재하면 해당 Intent 의 Extra Data 만 변경한다.
+
             PendingIntent resetSender = PendingIntent.getBroadcast(context, 0, resetIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             Calendar calendar = Calendar.getInstance();
