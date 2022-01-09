@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="spinner_content">
+        <item>일별</item>
+        <item>월별</item>
+        <item>년도별</item>
+    </string-array>
+</resources>
