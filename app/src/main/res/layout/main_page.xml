@@ -63,7 +63,7 @@
             android:id="@+id/map1"
             android:name="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="match_parent"
-            android:layout_height="80dp"
+            android:layout_height="300dp"
             android:layout_gravity="center"
             android:layout_marginHorizontal="10dp"
             tools:context=".MapsActivity" />

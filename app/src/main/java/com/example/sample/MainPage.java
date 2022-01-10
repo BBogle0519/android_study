@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.hardware.Sensor;
@@ -19,6 +20,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -31,6 +33,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -41,6 +44,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -61,18 +65,19 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
     GoogleMap mMap;     //지도 (추후에 네이버 지도랑 비교하여 유리한것 사용하기)
     SensorManager sensorManager;
     Sensor stepCountSensor; //TYPE_STEP_COUNTER, TYPE_STEP_DETECTOR 센서 두 종류 중 전자 선택 (앱 종료중에도 측정하기 위함)
+    View main_layout;   //snackbar 사용위한 view
 
     int counterStep = 0;    // 센서에 누적된 총 걸음 수
     int currentStep = 0;    // 현재 걸음 수
 
-    // 위치 퍼미션
-
+    // ActivityCompat.requestPermissions 퍼미션 요청 구별 위한 값
+    private static final int PERMISSIONS_REQUEST_CODE = 100;
 
     @Override
     protected void onCreate(@Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_page);
-
+        main_layout = findViewById(R.id.drawer_layout);
         progressBar = findViewById(R.id.progressBar);
         currentView = findViewById(R.id.current_step);
         totalView = findViewById(R.id.total_step);
@@ -207,9 +212,9 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
     }
 
     @Override
-    public void onSensorChanged(SensorEvent sensorEvent) {  // 센서가 동작을 감지하면 onSensorChanged() 함수로 전달
+    public void onSensorChanged(SensorEvent sensorEvent) {  // 센서가 동작을 감지하면 onSensorChanged() 함수로 값 전달
         if (sensorEvent.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
-            //stepcountsenersor는 앱이 꺼지더라도 초기화 되지않는다. 그러므로 우리는 초기값을 가지고 있어야한다.
+            //stepcountsenersor는 앱이 꺼지더라도 초기화 되지않는다. 그러므로 초기값을 가지고 있어야한다.
             if (counterStep < 1) {
                 // initial value
                 counterStep = (int) sensorEvent.values[0];
@@ -269,6 +274,9 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
     @Override
     public void onMapReady(@NonNull @NotNull GoogleMap googleMap) { // 지도 설정
         mMap = googleMap;
+
+        OnCheckPermission(); // 퍼미션 체크 및 요청 함수
+
         LatLng SEOUL = new LatLng(37.56, 126.97);
 
         MarkerOptions makerOptions = new MarkerOptions();
@@ -276,10 +284,45 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
         makerOptions.title("서울");
         makerOptions.snippet("한국의 수도");
         mMap.addMarker(makerOptions);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(SEOUL, 10));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(SEOUL, 15));
     }
 
-    // 1. 위치퍼미션 체크 및 허가
-    // 2. 현재위치 받기
-    // 3. 마커 설정 및 클릭등 이벤트 설정
+    // 위치 퍼미션 확인
+    public void OnCheckPermission() {
+        int fineLocationCheck = ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION);
+
+        int coarseLocationCheck = ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_COARSE_LOCATION);
+
+        // 위치 퍼미션 있는지 체크
+        if (fineLocationCheck == PackageManager.PERMISSION_GRANTED &&
+                coarseLocationCheck == PackageManager.PERMISSION_GRANTED) {
+            // 1. 이미 위치 퍼미션 허가 되있다면
+            // startLocationUpdate();
+        } else {
+            // 2. 위치 퍼미션 허가 안해놨다면 권한 요청
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                // 2.1 퍼미션 허가를 거부 한 적이 있는 경우 확인 메세지 띄우고 권한 요청
+                Snackbar.make(main_layout, "이 앱을 실행하려면 위치 접근 권한이 필요합니다.",
+                        Snackbar.LENGTH_INDEFINITE).setAction("확인", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        ActivityCompat.requestPermissions(MainPage.this,
+                                new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSIONS_REQUEST_CODE);
+                    }
+                }).show();
+            } else {
+                // 2.2 퍼미션 허가를 거부 한 적이 없는 경우 바로 권한 요청
+                ActivityCompat.requestPermissions(MainPage.this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSIONS_REQUEST_CODE);
+            }
+
+        }
+
+    }
+
+    // 1. 위치퍼미션 체크 및 허가 (완료)
+    // 2. 현재위치 받기(미완)
+    // 3. 마커 설정 및 클릭등 이벤트 설정(미구상, 미완)
 }

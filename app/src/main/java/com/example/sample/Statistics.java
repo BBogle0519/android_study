@@ -139,6 +139,7 @@ public class Statistics extends AppCompatActivity {
         dataSet.setValueTextColor(Color.BLACK);
         BarData data = new BarData(dataSet);
         data.setBarWidth(0.3f);
+
         // 데이터 세팅
         barchart.setData(data);
 
