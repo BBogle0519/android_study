@@ -59,13 +59,17 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.maps.android.SphericalUtil;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -88,16 +92,22 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
 
     int counterStep = 0;    // 센서에 누적된 총 걸음 수
     int currentStep = 0;    // 현재 걸음 수
+    double daily_distance = 0;
+    ArrayList<Double> distance_sum = new ArrayList<>();
 
     // ActivityCompat.requestPermissions 퍼미션 요청 구별 위한 값
     private static final int PERMISSIONS_REQUEST_CODE = 100;
 
-    Location currentLocatiion;
+    Location currentLocation;
     LatLng currentPosition;
 
     private FusedLocationProviderClient fusedLocationClient;
     private LocationRequest locationRequest;
     private Location location;
+
+    private LatLng startLatLng = new LatLng(0, 0);
+    private LatLng endLatLng = new LatLng(0, 0);
+    List<Polyline> polyLine = new ArrayList<>();
 
     @Override
     protected void onCreate(@Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
@@ -121,20 +131,58 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map1);
         mapFragment.getMapAsync(this);
 
+        int activityRecognitionCheck = ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACTIVITY_RECOGNITION);
+
+        // 활동 퍼미션 있는지 체크
+        if (activityRecognitionCheck == PackageManager.PERMISSION_GRANTED) {
+            // 1. 이미 퍼미션 허가 되있다면
+            Toast.makeText(context, "활동퍼미션 이미 있음", Toast.LENGTH_SHORT).show();
+        } else {
+            // 2. 퍼미션 허가 안해놨다면 권한 요청
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACTIVITY_RECOGNITION)) {
+                // 2.1 퍼미션 허가를 거부 한 적이 있는 경우 확인 메세지 띄우고 권한 요청
+                Snackbar.make(main_layout, "이 앱을 실행하려면 활동권한이 필요합니다.",
+                        Snackbar.LENGTH_INDEFINITE).setAction("확인", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        ActivityCompat.requestPermissions(MainPage.this,
+                                new String[]{Manifest.permission.ACTIVITY_RECOGNITION}, PERMISSIONS_REQUEST_CODE);
+                    }
+                }).show();
+            } else {
+                // 2.2 퍼미션 허가를 거부 한 적이 없는 경우 바로 권한 요청
+                ActivityCompat.requestPermissions(MainPage.this,
+                        new String[]{Manifest.permission.ACTIVITY_RECOGNITION}, PERMISSIONS_REQUEST_CODE);
+            }
+        }
+
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         stepCountSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+        Toast.makeText(context, "걸음 측정 센서 없음." + stepCountSensor, Toast.LENGTH_SHORT).show();
+        Log.d("onCreate", "stepCountSensor: " + stepCountSensor);
 
         if (stepCountSensor == null) { // 걸음수 측정 센서가 없는 경우 출력
             // AVD 에선 센서가 없으므로 임의값으로 테스트
-//            SharedPreferences pref = getSharedPreferences("token", MODE_PRIVATE);
-//            int user_id_pk = pref.getInt("user_id_pk", 0);
-//            Log.e("stepCountSensor", "user_id_pk:" + user_id_pk);
-//
-//            Intent resetIntent = new Intent(context, StepRecord.class);
-//            currentStep = 5000; // test value
-//            resetIntent.putExtra("daily_step", currentStep);
-//            resetIntent.putExtra("user_id_pk", user_id_pk);
-//            sendBroadcast(resetIntent);
+            SharedPreferences pref = getSharedPreferences("token", MODE_PRIVATE);
+            int user_id_pk = pref.getInt("user_id_pk", 0);
+            Log.e("stepCountSensor", "user_id_pk:" + user_id_pk);
+
+            Intent resetIntent = new Intent(context, StepRecord.class);
+            int testStep = 5000; // test value
+            double testDistance = 102.22; // test value
+
+            resetIntent.putExtra("daily_step", testStep);
+            resetIntent.putExtra("daily_distance", testDistance);
+            resetIntent.putExtra("user_id_pk", user_id_pk);
+            sendBroadcast(resetIntent);
+
+            // 당일 걸음 수, 누적 걸음 수 표시
+            currentView.setText(String.valueOf(testStep));
+            totalView.setText(String.valueOf(testStep) + "m");
+
+            // 프로그래스바에 표시
+            progressBar.setProgress(testStep);
 
             Log.e("stepCountSensor", "걸음 측정 센서 없음.");
         }
@@ -211,6 +259,8 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
             return true;
         });
 
+        dailyRecord();
+
     } // onCreate();
 
     @Override
@@ -223,7 +273,7 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {// 툴바의 버튼 클릭 시 이벤트
+        if (item.getItemId() == android.R.id.home) { // 툴바의 버튼 클릭 시 이벤트
             mDrawerLayout.openDrawer(GravityCompat.START);
             return true;
         }
@@ -246,6 +296,8 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {  // 센서가 동작을 감지하면 onSensorChanged() 함수로 값 전달
+        Log.e("onSensorChanged", "걸음 측정중.");
+        Toast.makeText(this, "onSensorChanged() 호출됨", Toast.LENGTH_LONG).show();
         if (sensorEvent.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
             //stepcountsenersor는 앱이 꺼지더라도 초기화 되지않는다. 그러므로 초기값을 가지고 있어야한다.
             if (counterStep < 1) {
@@ -257,46 +309,59 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
 
             // 당일 걸음 수, 누적 걸음 수 표시
             currentView.setText(String.valueOf(currentStep));
-            totalView.setText((int) sensorEvent.values[0]);
+            totalView.setText((int) sensorEvent.values[0] + "m");
 
             // 프로그래스바에 표시
             progressBar.setProgress(currentStep);
-
-            // 24시간(00:00 ~ 24:00) 측정하여 00:00시 마다 현재 걸음 수 0으로 표시, DB에 값 저장 (후에 확장하여 이동거리, 소비 칼로리 등 정보 추가하여 저장)
-            // 정시마다 실행되는 서비스엔 Timer보다 AlarmManager가 적합. (https://greedy0110.tistory.com/69)
-            // AlarmManager TEST
-            AlarmManager resetAlarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-
-            // StepRecord에 user_id_pk, 측정된 하루치 걸음 수 전송
-            SharedPreferences pref = getSharedPreferences("token", MODE_PRIVATE);
-            int user_id_pk = pref.getInt("user_id_pk", 0);
-
-            Intent resetIntent = new Intent(context, StepRecord.class);
-            resetIntent.putExtra("user_id_pk", user_id_pk);
-            resetIntent.putExtra("daily_step", currentStep);
-
-            // PendingIntent(보류 인텐트)를 사용하여 지정한 시간에 intent 실행
-            // FLAG_CANCEL_CURRENT : 이전에 생성한 PendingIntent 는 취소하고 새롭게 만든다.
-            // FLAG_NO_CREATE : 이미 생성된 PendingIntent 가 없다면 null 을 return 한다. 생성된 녀석이 있다면 그 PendingIntent 를 반환한다. 즉 재사용 전용이다.
-            // FLAG_ONE_SHOT : 이 flag 로 생성한 PendingIntent 는 일회용이다.
-            // FLAG_UPDATE_CURRENT : 이미 생성된 PendingIntent 가 존재하면 해당 Intent 의 Extra Data 만 변경한다.
-
-            PendingIntent resetSender = PendingIntent.getBroadcast(context, 0, resetIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(System.currentTimeMillis());
-            calendar.set(Calendar.HOUR_OF_DAY, 0);
-            calendar.set(Calendar.MINUTE, 0);
-            calendar.set(Calendar.SECOND, 0);
-
-            // AlarmManager.setInexactRepeating 반복적으로 지정한 시간에 작업
-            resetAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis() + AlarmManager.INTERVAL_DAY, AlarmManager.INTERVAL_DAY, resetSender);
-
-            SimpleDateFormat format = new SimpleDateFormat("MM/dd kk:mm:ss");
-            String setResetTime = format.format(new Date(calendar.getTimeInMillis() + AlarmManager.INTERVAL_DAY));
-            Log.e("resetAlarm", "ResetHour : " + setResetTime);
-
         }
+    }
+
+    // 24시간(00:00 ~ 24:00) 측정하여 00:00시 마다 현재 걸음 수 0으로 표시, DB에 데이터 저장
+    public void dailyRecord() {
+        // 정시마다 실행되는 서비스엔 Timer보다 AlarmManager가 적합. (https://greedy0110.tistory.com/69)
+        // AlarmManager TEST
+        AlarmManager resetAlarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+
+        // StepRecord에 user_id_pk, 측정된 하루치 걸음 수, 이동거리 전송
+        SharedPreferences pref = getSharedPreferences("token", MODE_PRIVATE);
+        int user_id_pk = pref.getInt("user_id_pk", 0);
+
+        if (distance_sum.size() != 0) {
+            for (int i = 0; i < distance_sum.size(); i++) {
+                double sum = 0;
+                sum += distance_sum.get(i);
+                daily_distance = sum;
+            }
+        }
+
+        Intent resetIntent = new Intent(context, StepRecord.class);
+        resetIntent.putExtra("user_id_pk", user_id_pk);
+        resetIntent.putExtra("daily_step", currentStep);
+        resetIntent.putExtra("daily_distance", daily_distance);
+
+        // PendingIntent(보류 인텐트)를 사용하여 지정한 시간에 intent 실행
+        // FLAG_CANCEL_CURRENT : 이전에 생성한 PendingIntent 는 취소하고 새롭게 만든다.
+        // FLAG_NO_CREATE : 이미 생성된 PendingIntent 가 없다면 null 을 return 한다. 생성된 녀석이 있다면 그 PendingIntent 를 반환한다. 즉 재사용 전용이다.
+        // FLAG_ONE_SHOT : 이 flag 로 생성한 PendingIntent 는 일회용이다.
+        // FLAG_UPDATE_CURRENT : 이미 생성된 PendingIntent 가 존재하면 해당 Intent 의 Extra Data 만 변경한다.
+
+        PendingIntent resetSender = PendingIntent.getBroadcast(context, 0, resetIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(System.currentTimeMillis());
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+
+        // AlarmManager.setInexactRepeating 반복적으로 지정한 시간에 작업
+        resetAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis() + AlarmManager.INTERVAL_DAY, AlarmManager.INTERVAL_DAY, resetSender);
+
+        SimpleDateFormat format = new SimpleDateFormat("MM/dd kk:mm:ss");
+        String setResetTime = format.format(new Date(calendar.getTimeInMillis() + AlarmManager.INTERVAL_DAY));
+        Log.e("resetAlarm", "ResetHour : " + setResetTime);
+
+        distance_sum.clear();
+        daily_distance = 0;
     }
 
     @Override
@@ -307,21 +372,15 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
     @Override
     public void onMapReady(@NonNull @NotNull GoogleMap googleMap) { // 지도 설정
         mMap = googleMap;
-        setDefaultLocation(); // 퍼미션 체크 이전에 디폴트 위치로 표시 (서울로 해놨는데 마지막 저장위치로 하도록 수정할 예정)
+        setDefaultLocation(); // 퍼미션 체크 이전에 디폴트 위치로 표시 (현재는 서울 마지막 저장위치로 하도록 수정할 예정)
         OnCheckPermission(); // 퍼미션 체크 및 현재 위치 받기 시작
 
         // 현재위치로 돌아가는 버튼
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
         // 현재 오동작을 해서 주석처리
         //mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
 
-            @Override
-            public void onMapClick(LatLng latLng) {
-
-                Log.d("onMapClick", "onMapClick :");
-            }
-        });
+        mMap.setOnMapClickListener(latLng -> Log.d("onMapClick", "onMapClick :"));
     }
 
     // 위치 퍼미션 확인, 현재위치 받아오기 시작 startLocationUpdate();
@@ -333,8 +392,7 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
                 Manifest.permission.ACCESS_COARSE_LOCATION);
 
         // 위치 퍼미션 있는지 체크
-        if (fineLocationCheck == PackageManager.PERMISSION_GRANTED &&
-                coarseLocationCheck == PackageManager.PERMISSION_GRANTED) {
+        if (fineLocationCheck == PackageManager.PERMISSION_GRANTED && coarseLocationCheck == PackageManager.PERMISSION_GRANTED) {
             // 1. 이미 위치 퍼미션 허가 되있다면 현재위치 받아오기 시작
             startLocationUpdate();
         } else {
@@ -359,7 +417,7 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
 
     LocationCallback locationCallback = new LocationCallback() {
         @Override
-        public void onLocationResult(LocationResult locationResult) {
+        public void onLocationResult(@NonNull LocationResult locationResult) {
             super.onLocationResult(locationResult);
 
             List<Location> locationList = locationResult.getLocations();
@@ -367,19 +425,33 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
             if (locationList.size() > 0) {
                 location = locationList.get(locationList.size() - 1);
                 //location = locationList.get(0);
-
-                currentPosition
-                        = new LatLng(location.getLatitude(), location.getLongitude());
+                if (startLatLng.latitude == 0 && startLatLng.longitude == 0) {
+                    startLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                    CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLng(startLatLng);
+                    mMap.moveCamera(cameraUpdate);
+                }
+                currentPosition = new LatLng(location.getLatitude(), location.getLongitude());
 
                 String markerTitle = getCurrentAddress(currentPosition);
-                String markerSnippet = "위도:" + String.valueOf(location.getLatitude())
-                        + " 경도:" + String.valueOf(location.getLongitude());
+                String markerSnippet = "위도:" + location.getLatitude() + " 경도:" + location.getLongitude();
 
-                Log.d("onLocationResult", "onLocationResult : " + markerSnippet);
+                Log.d("onLocationResult", "현재위치 : " + markerSnippet);
 
-                //현재 위치에 마커 생성하고 이동
+                //현재 위치에 마커 생성, 폴리라인 생성후 이동
                 setCurrentLocation(location, markerTitle, markerSnippet);
-                currentLocatiion = location;
+                currentLocation = location;
+                endLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+                PolylineOptions options = new PolylineOptions().add(startLatLng).add(endLatLng).width(7).color(Color.BLACK).geodesic(true);
+                polyLine.add(mMap.addPolyline(options));
+
+                double distance = SphericalUtil.computeDistanceBetween(startLatLng, endLatLng);
+                Log.d("onLocationResult", "이동거리 : " + distance + "m");
+
+                if (distance != 0)
+                    distance_sum.add(distance);
+
+                startLatLng = new LatLng(location.getLatitude(), location.getLongitude());
             }
         }
     };
@@ -418,12 +490,10 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
     }
 
     @Override
-    public void onRequestPermissionsResult(int permsRequestCode,
-                                           @NonNull String[] permissions,
-                                           @NonNull int[] grandResults) {
+    public void onRequestPermissionsResult(int permsRequestCode, @NonNull String[] permissions, @NonNull int[] grandResults) {
         super.onRequestPermissionsResult(permsRequestCode, permissions, grandResults);
 
-        if (permsRequestCode == PERMISSIONS_REQUEST_CODE && grandResults.length == 2) {
+        if (permsRequestCode == PERMISSIONS_REQUEST_CODE && grandResults.length == 3) {
             // 요청 코드가 PERMISSIONS_REQUEST_CODE 이고, 요청한 퍼미션 개수만큼 수신되었다면
             boolean check_result = true;
 
@@ -439,13 +509,13 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
                 // 퍼미션을 허용했다면 위치 업데이트를 시작합니다.
                 startLocationUpdate();
             } else {
-                // 거부한 퍼미션이 있다면 앱을 사용할 수 없는 이유를 설명해주고 앱을 종료합니다.2 가지 경우가 있습니다.
+                // 거부한 퍼미션이 있다면 앱을 사용할 수 없는 이유를 설명해주고 앱을 종료합니다. 2 가지 경우가 있습니다.
                 if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                        || ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
+                        || ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                        || ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACTIVITY_RECOGNITION)) {
                     // 사용자가 거부만 선택한 경우에는 앱을 다시 실행하여 허용을 선택하면 앱을 사용할 수 있습니다.
                     Snackbar.make(mDrawerLayout, "퍼미션이 거부되었습니다. 앱을 다시 실행하여 퍼미션을 허용해주세요. ",
                             Snackbar.LENGTH_INDEFINITE).setAction("확인", new View.OnClickListener() {
-
                         @Override
                         public void onClick(View view) {
                             finish();
@@ -456,7 +526,6 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
                     // "다시 묻지 않음"을 사용자가 체크하고 거부를 선택한 경우에는 설정(앱 정보)에서 퍼미션을 허용해야 앱을 사용할 수 있습니다.
                     Snackbar.make(mDrawerLayout, "퍼미션이 거부되었습니다. 설정(앱 정보)에서 퍼미션을 허용해야 합니다. ",
                             Snackbar.LENGTH_INDEFINITE).setAction("확인", new View.OnClickListener() {
-
                         @Override
                         public void onClick(View view) {
                             finish();
@@ -502,25 +571,21 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
         builder.create().show();
     }
 
+    //지오코더: GPS를 주소로 변환
     public String getCurrentAddress(LatLng latlng) {
-        //지오코더: GPS를 주소로 변환
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-
         List<Address> addresses;
 
         try {
-            addresses = geocoder.getFromLocation(
-                    latlng.latitude,
-                    latlng.longitude,
-                    1);
+            addresses = geocoder.getFromLocation(latlng.latitude, latlng.longitude, 1);
         } catch (IOException ioException) {
             //네트워크 문제
             Toast.makeText(this, "지오코더 서비스 사용불가", Toast.LENGTH_LONG).show();
             return "지오코더 서비스 사용불가";
+
         } catch (IllegalArgumentException illegalArgumentException) {
             Toast.makeText(this, "잘못된 GPS 좌표", Toast.LENGTH_LONG).show();
             return "잘못된 GPS 좌표";
-
         }
 
         if (addresses == null || addresses.size() == 0) {
@@ -529,13 +594,13 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
 
         } else {
             Address address = addresses.get(0);
-            return address.getAddressLine(0).toString();
+            return address.getAddressLine(0);
         }
 
     }
 
+    //디폴트 위치, 서울로 해놨음
     public void setDefaultLocation() {
-        //디폴트 위치, Seoul
         LatLng DEFAULT_LOCATION = new LatLng(37.56, 126.97);
         String markerTitle = "위치정보 가져올 수 없음";
         String markerSnippet = "위치 퍼미션과 GPS 활성 요부 확인하세요";
@@ -552,9 +617,9 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
 
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(DEFAULT_LOCATION, 15);
         mMap.moveCamera(cameraUpdate);
-
     }
 
+    // 현재위치에 마커 생성
     public void setCurrentLocation(Location location, String markerTitle, String markerSnippet) {
         if (currentMarker != null) currentMarker.remove();
         LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
@@ -566,12 +631,14 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
         markerOptions.draggable(true);
 
         currentMarker = mMap.addMarker(markerOptions);
-
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLng(currentLatLng);
-        mMap.moveCamera(cameraUpdate);
     }
 
     // 1. 위치퍼미션 체크 및 허가 (완료)
-    // 2. 현재위치 받기(미완)
-    // 3. 마커 설정 및 클릭등 이벤트 설정(미구상, 미완)
+    // 2. 현재위치 받기(완료)
+    // 3. 마커 설정 및 클릭등 이벤트 설정(미구상)
+    // 4. 이동경로 그리기 및 거리측정 (경로는 위도,경도 바뀔때마다 폴리라인 그리면 될듯?)
+    // 총 이동거리 = 이동경로길이(그려진 폴리라인의 총 길이) or 걸음수와 보폭 둘다 실제로 테스트해보고 더 정확한것으로 결정
+    // 이동거리 측정은 완벽하게 하는것은 현재 불가능하다고 판단(핸드폰 센서 정밀도등 이슈로 대기업도 정확한 측정 불가능.)
+    // 삼성헬스 자동거리측정 방법인 걸음수와 보폭(키와 분당 걸음 수로 구한 값)으로 이동거리 계산.
+    // 삼성헬스 정밀거리측정 있으나 구글링 결과 계산이 너무 전문적이고 마찬가지로 완벽하게 정확하진 않다고 한다.
 }

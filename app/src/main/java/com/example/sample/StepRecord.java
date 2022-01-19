@@ -17,16 +17,20 @@ public class StepRecord extends BroadcastReceiver {
     ApiService service;
     int user_id_pk;
     int daily_step;
+    double daily_distance;
 
     @Override
     public void onReceive(Context context, Intent intent) {
         service = RetrofitClient.getClient().create(ApiService.class);
         user_id_pk = intent.getIntExtra("user_id_pk", 0);
         daily_step = intent.getIntExtra("daily_step", 0);
-        saveRecord(new StepData(user_id_pk, daily_step));
+        daily_distance = intent.getDoubleExtra("daily_distance", 0);
+
+        saveRecord(new StepData(user_id_pk, daily_step, daily_distance));
 
         // Log.e("onReceive\n", "getID: " + user_id_pk);
         // Log.e("onReceive\n", "getSTEP: " + daily_step);
+        Log.e("onReceive\n", "getDistance: " + daily_distance);
     }
 
     private void saveRecord(StepData data) {

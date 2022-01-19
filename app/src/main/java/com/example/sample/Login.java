@@ -43,8 +43,8 @@ public class Login extends AppCompatActivity {
         btn_ok.setOnClickListener(view -> {
             // 로그인 처리 attemptLogin() 호출
             attemptLogin();
-            Intent intent = new Intent(getApplicationContext(), MainPage.class);
-            startActivity(intent);
+            //Intent intent = new Intent(getApplicationContext(), MainPage.class);
+            //startActivity(intent);
             //finish();
         });
 
@@ -117,6 +117,9 @@ public class Login extends AppCompatActivity {
                     Log.e("Login: 2xx\n", "토큰 저장 완료");
 
                     // 로그인한 사용자의 화면으로 변경
+                    Intent intent = new Intent(getApplicationContext(), MainPage.class);
+                    startActivity(intent);
+                    //finish();
 
                 } else {
                     // 일치하는 아이디, 비밀번호 확인하도록 처리

@@ -9,14 +9,20 @@ public class RegistData implements Serializable {
     @SerializedName("user_id")
     private String user_id;
 
-    @SerializedName("user_pw")
-    private String user_pw;
+    @SerializedName("password")
+    private String password;
 
     @SerializedName("user_nm")
     private String user_nm;
 
     @SerializedName("user_ph")
     private int user_ph;
+
+    @SerializedName("user_sex")
+    private int user_sex;
+
+    @SerializedName("user_tall")
+    private int user_tall;
 
     @SerializedName("user_email")
     private String user_email;
@@ -27,10 +33,12 @@ public class RegistData implements Serializable {
 //    @SerializedName("user_st")        회원상태 (장고에서 자동생성)
 //    private int user_st;
 
-    public RegistData(String user_id, String user_pw, String user_nm, int user_ph, String user_email) {
+    public RegistData(String user_id, String password, String user_nm, int user_ph, int user_sex, int user_tall, String user_email) {
         this.user_id = user_id;
-        this.user_pw = user_pw;
+        this.password = password;
         this.user_nm = user_nm;
+        this.user_sex = user_sex;
+        this.user_tall = user_tall;
         this.user_ph = user_ph;
         this.user_email = user_email;
     }
@@ -43,12 +51,12 @@ public class RegistData implements Serializable {
         this.user_id = user_id;
     }
 
-    public String getUser_pw() {
-        return user_pw;
+    public String getPassword() {
+        return password;
     }
 
-    public void setUser_pw(String user_pw) {
-        this.user_pw = user_pw;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getUser_nm() {
@@ -57,6 +65,22 @@ public class RegistData implements Serializable {
 
     public void setUser_nm(String user_nm) {
         this.user_nm = user_nm;
+    }
+
+    public int getUser_sex() {
+        return user_sex;
+    }
+
+    public void setUser_sex(int user_sex) {
+        this.user_sex = user_sex;
+    }
+
+    public int getUser_tall() {
+        return user_tall;
+    }
+
+    public void setUser_tall(int user_tall) {
+        this.user_tall = user_tall;
     }
 
     public int getUser_ph() {

@@ -9,12 +9,16 @@ public class StepData {
     @SerializedName("step")
     public int step;
 
+    @SerializedName("distance")
+    public double distance;
+
 //    @SerializedName("record")
 //    public String record;
 
-    public StepData(int user_id_pk, int step) {
+    public StepData(int user_id_pk, int step, double distance) {
         this.user_id_pk = user_id_pk;
         this.step = step;
+        this.distance = distance;
 //        this.record = record;
     }
 }

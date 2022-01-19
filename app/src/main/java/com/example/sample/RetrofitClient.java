@@ -7,7 +7,7 @@ public class RetrofitClient {
     // localhost(에뮬레이터에선 10.0.2.2로 사용)
     private final static String BASE_URL = "http://10.0.2.2:8000";
     // AWS 주소
-    // private final static String BASE_URL = "http://3.36.135.85:8000";
+//    private final static String BASE_URL = "http://3.36.135.85:8000";
     private static Retrofit retrofit = null;
 
     private RetrofitClient() {

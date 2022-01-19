@@ -7,6 +7,8 @@ import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,22 +22,24 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class Regist extends AppCompatActivity {
-    //객체 생성
-    private Button btn_ok;      // 확인버튼
-    private Button btn_cnl;     // 취소버튼
+    Button btn_ok;      // 확인버튼
+    Button btn_cnl;     // 취소버튼
 
-    //추후에 AutoCompleteTextView 적용하기
-    private EditText edt_id;    // 아이디입력
-    private EditText edt_pw;    // 패스워드입력
-    private EditText edt_nm;    // 이름입력
-    private EditText edt_ph;    // 전화번호입력
-    private EditText edt_mail;  // 메일입력
+    EditText edt_id;    // 아이디입력
+    EditText edt_pw;    // 패스워드입력
+    EditText edt_nm;    // 이름입력
+    EditText edt_tall;  // 키입력
+    EditText edt_ph;    // 전화번호입력
+    EditText edt_mail;  // 메일입력
 
-    private AutoCompleteTextView atv_id; // 아이디 입력오류 출력
-    private AutoCompleteTextView atv_pw; // 패스워드 입력오류 출력
-    private AutoCompleteTextView atv_nm; // 이름 입력오류 출력
-    private AutoCompleteTextView atv_ph; // 전화번호 입력오류 출력
-    private AutoCompleteTextView atv_mail; // 메일 입력오류 출력
+    AutoCompleteTextView atv_id; // 아이디 입력오류 출력
+    AutoCompleteTextView atv_pw; // 패스워드 입력오류 출력
+    AutoCompleteTextView atv_nm; // 이름 입력오류 출력
+    AutoCompleteTextView atv_tall; // 키 입력오류 출력
+    AutoCompleteTextView atv_ph; // 전화번호 입력오류 출력
+    AutoCompleteTextView atv_mail; // 메일 입력오류 출력
+
+    RadioGroup radio_group;
 
     private ApiService service; // apiservice 객체 생성
 
@@ -44,45 +48,62 @@ public class Regist extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.regist);
 
+        // retrofit2 api
+        service = RetrofitClient.getClient().create(ApiService.class);
+
         btn_ok = findViewById(R.id.btn_reg_ok);
         btn_cnl = findViewById(R.id.btn_reg_cnl);
 
         edt_id = findViewById(R.id.edt_id);
         edt_pw = findViewById(R.id.edt_pw);
         edt_nm = findViewById(R.id.edt_nm);
+        edt_tall = findViewById(R.id.edt_tall);
         edt_ph = findViewById(R.id.edt_ph);
         edt_mail = findViewById(R.id.edt_mail);
 
         atv_id = findViewById(R.id.atv_id);
         atv_pw = findViewById(R.id.atv_pw);
         atv_nm = findViewById(R.id.atv_nm);
+        atv_tall = findViewById(R.id.atv_tall);
         atv_ph = findViewById(R.id.atv_ph);
         atv_mail = findViewById(R.id.atv_mail);
 
-        // retrofit2 api
-        service = RetrofitClient.getClient().create(ApiService.class);
+        radio_group = findViewById(R.id.radio_group);
+
+        final int[] sex = new int[1];
+        radio_group.setOnCheckedChangeListener((radioGroup, i) -> {
+            switch (i) {
+                case R.id.radio_male:
+                    sex[0] = 0;
+                    break;
+                case R.id.radio_female:
+                    sex[0] = 1;
+                    break;
+            }
+        });
 
         // 확인버튼 터치시 동작
         btn_ok.setOnClickListener(view -> {
-            //Log.e("btn_ok", "attemptRegist 접근");
-            attemptRegist();
             //Log.e("btn_ok", "attemptRegist 호출");
+            attemptRegist(sex);
         });
 
         // 취소버튼시 액티비티 종료
         btn_cnl.setOnClickListener(view -> finish());
     }
 
-    private void attemptRegist() { // 사용자 입력데이터 유효성 검사
+    private void attemptRegist(int[] sex) { // 사용자 입력데이터 유효성 검사
         atv_id.setError(null);
         atv_pw.setError(null);
         atv_nm.setError(null);
+        atv_tall.setError(null);
         atv_ph.setError(null);
         atv_mail.setError(null);
 
         String id = edt_id.getText().toString();
         String pw = edt_pw.getText().toString();
         String nm = edt_nm.getText().toString();
+        String tall = edt_tall.getText().toString();
         String ph = edt_ph.getText().toString();
         String mail = edt_mail.getText().toString();
 
@@ -125,6 +146,13 @@ public class Regist extends AppCompatActivity {
             cancel = true;
         }
 
+        //tall 유효성 검사
+        if (tall.isEmpty()) {
+            atv_ph.setError("전화번호를 입력해주세요.");
+            focusView = edt_ph;
+            cancel = true;
+        }
+
         //mail 유효성 검사
         if (mail.isEmpty()) {
             atv_mail.setError("이메일을 입력해주세요.");
@@ -137,7 +165,7 @@ public class Regist extends AppCompatActivity {
         if (cancel) {
             focusView.requestFocus();
         } else {
-            startRegist(new RegistData(id, pw, nm, Integer.parseInt(ph), mail));
+            startRegist(new RegistData(id, pw, nm, Integer.parseInt(ph), sex[0], Integer.parseInt(tall), mail));
         }
     }
 
