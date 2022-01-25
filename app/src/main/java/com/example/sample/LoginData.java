@@ -13,4 +13,8 @@ public class LoginData {
         this.user_id = user_id;
         this.password = password;
     }
+
+    public String getUser_id() {
+        return user_id;
+    }
 }

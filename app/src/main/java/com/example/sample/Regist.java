@@ -32,13 +32,6 @@ public class Regist extends AppCompatActivity {
     EditText edt_ph;    // 전화번호입력
     EditText edt_mail;  // 메일입력
 
-    AutoCompleteTextView atv_id; // 아이디 입력오류 출력
-    AutoCompleteTextView atv_pw; // 패스워드 입력오류 출력
-    AutoCompleteTextView atv_nm; // 이름 입력오류 출력
-    AutoCompleteTextView atv_tall; // 키 입력오류 출력
-    AutoCompleteTextView atv_ph; // 전화번호 입력오류 출력
-    AutoCompleteTextView atv_mail; // 메일 입력오류 출력
-
     RadioGroup radio_group;
 
     private ApiService service; // apiservice 객체 생성
@@ -60,13 +53,6 @@ public class Regist extends AppCompatActivity {
         edt_tall = findViewById(R.id.edt_tall);
         edt_ph = findViewById(R.id.edt_ph);
         edt_mail = findViewById(R.id.edt_mail);
-
-        atv_id = findViewById(R.id.atv_id);
-        atv_pw = findViewById(R.id.atv_pw);
-        atv_nm = findViewById(R.id.atv_nm);
-        atv_tall = findViewById(R.id.atv_tall);
-        atv_ph = findViewById(R.id.atv_ph);
-        atv_mail = findViewById(R.id.atv_mail);
 
         radio_group = findViewById(R.id.radio_group);
 
@@ -93,12 +79,12 @@ public class Regist extends AppCompatActivity {
     }
 
     private void attemptRegist(int[] sex) { // 사용자 입력데이터 유효성 검사
-        atv_id.setError(null);
-        atv_pw.setError(null);
-        atv_nm.setError(null);
-        atv_tall.setError(null);
-        atv_ph.setError(null);
-        atv_mail.setError(null);
+        edt_id.setError(null);
+        edt_pw.setError(null);
+        edt_nm.setError(null);
+        edt_ph.setError(null);
+        edt_tall.setError(null);
+        edt_mail.setError(null);
 
         String id = edt_id.getText().toString();
         String pw = edt_pw.getText().toString();
@@ -112,54 +98,54 @@ public class Regist extends AppCompatActivity {
 
         //id 유효성 검사
         if (id.isEmpty()) {
-            atv_id.setError("아이디를 입력해주세요");
+            edt_id.setError("아이디를 입력해주세요");
             focusView = edt_id;
             cancel = true;
         } else if (!isIdValid(id)) {
-            atv_id.setError("5~20자 이내로 아이디를 입력해주세요.");
+            edt_id.setError("5~20자 이내로 아이디를 입력해주세요.");
             focusView = edt_id;
             cancel = true;
         }
 
         //pw 유효성 검사
         if (pw.isEmpty()) {
-            atv_pw.setError("비밀번호를 입력해주세요.");
+            edt_pw.setError("비밀번호를 입력해주세요.");
             focusView = edt_pw;
             cancel = true;
         } else if (!isPwValid(pw)) {
-            atv_pw.setError("8자 이내로 비밀번호를 입력해주세요.");
+            edt_pw.setError("8자 이내로 비밀번호를 입력해주세요.");
             focusView = edt_pw;
             cancel = true;
         }
 
         //nm 유효성 검사
         if (nm.isEmpty()) {
-            atv_nm.setError("이름을 입력해주세요.");
+            edt_nm.setError("이름을 입력해주세요.");
             focusView = edt_nm;
             cancel = true;
         }
 
         //ph 유효성 검사
         if (ph.isEmpty()) {
-            atv_ph.setError("전화번호를 입력해주세요.");
+            edt_ph.setError("전화번호를 입력해주세요.");
             focusView = edt_ph;
             cancel = true;
         }
 
         //tall 유효성 검사
         if (tall.isEmpty()) {
-            atv_ph.setError("전화번호를 입력해주세요.");
-            focusView = edt_ph;
+            edt_tall.setError("키를 입력해주세요.");
+            focusView = edt_tall;
             cancel = true;
         }
 
         //mail 유효성 검사
         if (mail.isEmpty()) {
-            atv_mail.setError("이메일을 입력해주세요.");
+            edt_mail.setError("이메일을 입력해주세요.");
             focusView = edt_mail;
             cancel = true;
         } else if (!isEmailValid(mail)) {
-            atv_mail.setError("올바른 메일주소를 입력해주세요.");
+            edt_mail.setError("올바른 메일주소를 입력해주세요.");
         }
 
         if (cancel) {

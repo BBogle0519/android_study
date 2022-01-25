@@ -162,7 +162,7 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
         Toast.makeText(context, "걸음 측정 센서 없음." + stepCountSensor, Toast.LENGTH_SHORT).show();
         Log.d("onCreate", "stepCountSensor: " + stepCountSensor);
 
-        if (stepCountSensor == null) { // 걸음수 측정 센서가 없는 경우 출력
+        if (stepCountSensor == null) { // 걸음수 측정 센서가 없는 경우
             // AVD 에선 센서가 없으므로 임의값으로 테스트
             SharedPreferences pref = getSharedPreferences("token", MODE_PRIVATE);
             int user_id_pk = pref.getInt("user_id_pk", 0);
@@ -194,7 +194,7 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
         actionBar.setDisplayShowCustomEnabled(true);
         actionBar.setDisplayHomeAsUpEnabled(true);              // 메뉴 버튼 활성화
         actionBar.setDisplayShowTitleEnabled(false);            // 기존 타이틀 삭제
-        actionBar.setHomeAsUpIndicator(R.drawable.ic_launcher_foreground); // 메뉴 버튼 이미지 수정하기 임시
+        actionBar.setHomeAsUpIndicator(R.drawable.ic_action_name); // 메뉴 버튼 이미지 수정하기 임시
         actionBar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#FFFFFF"))); //툴바 배경색
 
         mDrawerLayout = findViewById(R.id.drawer_layout);
@@ -217,14 +217,18 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
         tv_username.setTextSize(17);
         //tv_username.setTypeface(typeface);
 
-        if (TextUtils.isEmpty(tv_username.getText())) {
-            tv_username.setText("로그인이 필요합니다.");
-        } else {
-            Intent intent = getIntent();
-            RegistData reg_info = (RegistData) intent.getSerializableExtra("reg_info");
-            tv_username.setText(reg_info.getUser_id() + " 님");
-        }
+        Intent id_intent = getIntent();
+        String login_id = id_intent.getStringExtra("login_id");
+        tv_username.setText(login_id + " 님");
         navigation_container.addView(tv_username);
+
+//        if (TextUtils.isEmpty(tv_username.getText())) {
+//            tv_username.setText("로그인이 필요합니다.");
+//        } else {
+//            Intent intent = getIntent();
+//            LoginData login_info = (LoginData) intent.getSerializableExtra("login_id");
+//            tv_username.setText(login_info.getUser_id() + " 님");
+//        }
 
         //헤더 적용
         navigationView.addHeaderView(navigation_container);
@@ -240,7 +244,6 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
             if (id == R.id.account) {
                 Intent intent = new Intent(getApplication(), Regist.class);
                 startActivity(intent);
-                Toast.makeText(context, title + ": 계정 정보를 확인합니다.", Toast.LENGTH_SHORT).show();
 
             } else if (id == R.id.setting) { //네비게이션 설정 메뉴 터치시
                 Toast.makeText(context, title + ": 설정 정보를 확인합니다.", Toast.LENGTH_SHORT).show();
@@ -377,9 +380,6 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
 
         // 현재위치로 돌아가는 버튼
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
-        // 현재 오동작을 해서 주석처리
-        //mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
-
         mMap.setOnMapClickListener(latLng -> Log.d("onMapClick", "onMapClick :"));
     }
 
@@ -635,7 +635,7 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
 
     // 1. 위치퍼미션 체크 및 허가 (완료)
     // 2. 현재위치 받기(완료)
-    // 3. 마커 설정 및 클릭등 이벤트 설정(미구상)
+    // 3. 마커 설정 및 클릭등 이벤트 설정(현재 그냥 마커 클릭시 위도 경도 나오게만 해둠)
     // 4. 이동경로 그리기 및 거리측정 (경로는 위도,경도 바뀔때마다 폴리라인 그리면 될듯?)
     // 총 이동거리 = 이동경로길이(그려진 폴리라인의 총 길이) or 걸음수와 보폭 둘다 실제로 테스트해보고 더 정확한것으로 결정
     // 이동거리 측정은 완벽하게 하는것은 현재 불가능하다고 판단(핸드폰 센서 정밀도등 이슈로 대기업도 정확한 측정 불가능.)
