@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Sample</string>
+    <string name="login">LOGIN</string>
+    <string name="create_account">Create Account</string>
+    <string name="account_info">계정 정보</string>
+    <string name="toolbar_title">만보기 샘플</string>
+    <string name="subtitle">subtitle</string>
+    <string name="btn2">코스추천</string>
+    <string name="stepstatistics_test">StepStatistics Test</string>
 </resources>

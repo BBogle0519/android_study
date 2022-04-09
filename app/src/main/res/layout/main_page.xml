@@ -17,14 +17,12 @@
             android:id="@+id/view_toolbar"
             android:layout_width="match_parent"
             android:layout_height="2dp"
-            android:layout_below="@+id/toolbar"
             android:background="@android:color/black" />
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
             android:minHeight="?attr/actionBarSize">
 
             <TextView
@@ -33,7 +31,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="만보기 샘플" />
+                android:text="@string/toolbar_title" />
 
         </androidx.appcompat.widget.Toolbar>
 
@@ -41,7 +39,7 @@
             android:id="@+id/subtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="subtitle"
+            android:text="@string/subtitle"
             android:textSize="20sp" />
 
         <TextView
@@ -59,7 +57,7 @@
             android:max="10000"
             android:progress="0" />
 
-        <fragment
+        <androidx.fragment.app.FragmentContainerView
             android:id="@+id/map1"
             android:name="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="match_parent"
@@ -78,7 +76,7 @@
             android:id="@+id/btn2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="코스추천" />
+            android:text="@string/btn2" />
 
     </LinearLayout>
 

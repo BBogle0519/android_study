@@ -107,13 +107,6 @@ public class Statistics extends AppCompatActivity {
                     // 그래프 세팅
                     setBarchart(label, chart_data);
 
-//                    for (int i = 0; i < year_data.size(); i++) {
-//                        label.add(i, year_data.get(i).getYear());
-//                        chart_data.add(i, year_data.get(i).getStep());
-//                    }
-//                    // 그래프 세팅
-//                    setBarchart(label, chart_data);
-
                 } else {
                     // 저장된 데이터 없음
                     Log.e("stepRecord 4xx\n", "response.code(): " + response.code());
@@ -156,7 +149,7 @@ public class Statistics extends AppCompatActivity {
         barchart.setMaxVisibleValueCount(7);
         barchart.setFitBars(true);
         barchart.getDescription().setText("year step count");
-        barchart.animateY(2000);
+        //barchart.animateY(2000);
         barchart.setTouchEnabled(false);
         barchart.getXAxis().setValueFormatter(new IndexAxisValueFormatter(label_list));
         barchart.invalidate();

@@ -21,7 +21,6 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Looper;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -96,7 +95,13 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
     ArrayList<Double> distance_sum = new ArrayList<>();
 
     // ActivityCompat.requestPermissions 퍼미션 요청 구별 위한 값
+    // PERMISSION: 이 앱에 필요한 퍼미션
     private static final int PERMISSIONS_REQUEST_CODE = 100;
+    private String[] PERMISSION = {
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACTIVITY_RECOGNITION
+    };
 
     Location currentLocation;
     LatLng currentPosition;
@@ -113,6 +118,9 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
     protected void onCreate(@Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_page);
+
+        //PERMISSION 체크
+
         main_layout = findViewById(R.id.drawer_layout);
         progressBar = findViewById(R.id.progressBar);
         currentView = findViewById(R.id.current_step);
@@ -138,6 +146,8 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
         if (activityRecognitionCheck == PackageManager.PERMISSION_GRANTED) {
             // 1. 이미 퍼미션 허가 되있다면
             Toast.makeText(context, "활동퍼미션 이미 있음", Toast.LENGTH_SHORT).show();
+            sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+            stepCountSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
         } else {
             // 2. 퍼미션 허가 안해놨다면 권한 요청
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACTIVITY_RECOGNITION)) {
@@ -147,20 +157,18 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
                     @Override
                     public void onClick(View view) {
                         ActivityCompat.requestPermissions(MainPage.this,
-                                new String[]{Manifest.permission.ACTIVITY_RECOGNITION}, PERMISSIONS_REQUEST_CODE);
+                                new String[]{PERMISSION[2]}, PERMISSIONS_REQUEST_CODE);
                     }
                 }).show();
             } else {
                 // 2.2 퍼미션 허가를 거부 한 적이 없는 경우 바로 권한 요청
                 ActivityCompat.requestPermissions(MainPage.this,
-                        new String[]{Manifest.permission.ACTIVITY_RECOGNITION}, PERMISSIONS_REQUEST_CODE);
+                        new String[]{PERMISSION[2]}, PERMISSIONS_REQUEST_CODE);
             }
         }
 
-        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        stepCountSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
-        Toast.makeText(context, "걸음 측정 센서 없음." + stepCountSensor, Toast.LENGTH_SHORT).show();
-        Log.d("onCreate", "stepCountSensor: " + stepCountSensor);
+//        Toast.makeText(context, "testtest" + stepCountSensor, Toast.LENGTH_SHORT).show();
+//        Log.d("onCreate", "stepCountSensor: " + stepCountSensor);
 
         if (stepCountSensor == null) { // 걸음수 측정 센서가 없는 경우
             // AVD 에선 센서가 없으므로 임의값으로 테스트
@@ -179,11 +187,11 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
 
             // 당일 걸음 수, 누적 걸음 수 표시
             currentView.setText(String.valueOf(testStep));
-            totalView.setText(String.valueOf(testStep) + "m");
+            totalView.setText("센서 누적 걸음수: " + String.valueOf(testStep) + "걸음");
 
             // 프로그래스바에 표시
             progressBar.setProgress(testStep);
-
+            Toast.makeText(context, "걸음수측정센서 없음", Toast.LENGTH_SHORT).show();
             Log.e("stepCountSensor", "걸음 측정 센서 없음.");
         }
 
@@ -287,20 +295,20 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
     protected void onPause() { // 어플리케이션 일시중지 상태
         super.onPause();
         //센서 작동 중지
-        //sensorManager.unregisterListener(this);
+        sensorManager.unregisterListener(this);
     }
 
     @Override
     protected void onResume() { // 어플리케이션 활성화 상태
         super.onResume();
         //센서 재작동
-        //sensorManager.registerListener(this, stepCountSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(this, stepCountSensor, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {  // 센서가 동작을 감지하면 onSensorChanged() 함수로 값 전달
         Log.e("onSensorChanged", "걸음 측정중.");
-        Toast.makeText(this, "onSensorChanged() 호출됨", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "걸음 측정중", Toast.LENGTH_LONG).show();
         if (sensorEvent.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
             //stepcountsenersor는 앱이 꺼지더라도 초기화 되지않는다. 그러므로 초기값을 가지고 있어야한다.
             if (counterStep < 1) {
@@ -319,7 +327,7 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
         }
     }
 
-    // 24시간(00:00 ~ 24:00) 측정하여 00:00시 마다 현재 걸음 수 0으로 표시, DB에 데이터 저장
+    // 24시간(00:00 ~ 24:00) 측정하여 00:00시 마다 현재 걸음 수 0으로 표시, DB에 데이터 저장 (앱이 종료 상태여도 실행되어야함) 포그라운드 서비스 이용할것.
     public void dailyRecord() {
         // 정시마다 실행되는 서비스엔 Timer보다 AlarmManager가 적합. (https://greedy0110.tistory.com/69)
         // AlarmManager TEST
@@ -397,20 +405,20 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
             startLocationUpdate();
         } else {
             // 2. 위치 퍼미션 허가 안해놨다면 권한 요청
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, PERMISSION[0])) {
                 // 2.1 퍼미션 허가를 거부 한 적이 있는 경우 확인 메세지 띄우고 권한 요청
                 Snackbar.make(main_layout, "이 앱을 실행하려면 위치 접근 권한이 필요합니다.",
                         Snackbar.LENGTH_INDEFINITE).setAction("확인", new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         ActivityCompat.requestPermissions(MainPage.this,
-                                new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSIONS_REQUEST_CODE);
+                                new String[]{PERMISSION[0], PERMISSION[1]}, PERMISSIONS_REQUEST_CODE);
                     }
                 }).show();
             } else {
                 // 2.2 퍼미션 허가를 거부 한 적이 없는 경우 바로 권한 요청
                 ActivityCompat.requestPermissions(MainPage.this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSIONS_REQUEST_CODE);
+                        new String[]{PERMISSION[0],PERMISSION[1]}, PERMISSIONS_REQUEST_CODE);
             }
         }
     }
@@ -484,6 +492,8 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
                 Manifest.permission.ACCESS_FINE_LOCATION);
         int coarseLocationCheck = ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_COARSE_LOCATION);
+        int activityRecognitionCheck = ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACTIVITY_RECOGNITION);
 
         return fineLocationCheck == PackageManager.PERMISSION_GRANTED &&
                 coarseLocationCheck == PackageManager.PERMISSION_GRANTED;
@@ -493,7 +503,7 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
     public void onRequestPermissionsResult(int permsRequestCode, @NonNull String[] permissions, @NonNull int[] grandResults) {
         super.onRequestPermissionsResult(permsRequestCode, permissions, grandResults);
 
-        if (permsRequestCode == PERMISSIONS_REQUEST_CODE && grandResults.length == 3) {
+        if (permsRequestCode == PERMISSIONS_REQUEST_CODE && grandResults.length == PERMISSION.length) {
             // 요청 코드가 PERMISSIONS_REQUEST_CODE 이고, 요청한 퍼미션 개수만큼 수신되었다면
             boolean check_result = true;
 
@@ -510,9 +520,9 @@ public class MainPage extends AppCompatActivity implements SensorEventListener, 
                 startLocationUpdate();
             } else {
                 // 거부한 퍼미션이 있다면 앱을 사용할 수 없는 이유를 설명해주고 앱을 종료합니다. 2 가지 경우가 있습니다.
-                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                        || ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                        || ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACTIVITY_RECOGNITION)) {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, PERMISSION[0])
+                        || ActivityCompat.shouldShowRequestPermissionRationale(this, PERMISSION[1])
+                        || ActivityCompat.shouldShowRequestPermissionRationale(this, PERMISSION[2])) {
                     // 사용자가 거부만 선택한 경우에는 앱을 다시 실행하여 허용을 선택하면 앱을 사용할 수 있습니다.
                     Snackbar.make(mDrawerLayout, "퍼미션이 거부되었습니다. 앱을 다시 실행하여 퍼미션을 허용해주세요. ",
                             Snackbar.LENGTH_INDEFINITE).setAction("확인", new View.OnClickListener() {

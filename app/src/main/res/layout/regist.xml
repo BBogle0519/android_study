@@ -8,13 +8,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="Create Account" />
+        android:text="@string/create_account" />
 
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="150dp"
         android:layout_marginBottom="5dp"
-        android:src="@drawable/jogging" />
+        android:src="@drawable/jogging"
+        android:contentDescription="@string/app_name" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
@@ -101,7 +102,7 @@
             android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:hint="TALL">
+            android:hint="HEIGHT">
 
         </com.google.android.material.textfield.TextInputEditText>
     </com.google.android.material.textfield.TextInputLayout>

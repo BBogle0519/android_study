@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -8,14 +9,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="LOGIN" />
+        android:text="@string/login" />
 
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginBottom="10dp"
-        android:src="@drawable/jogging" />
+        android:src="@drawable/jogging"
+        android:contentDescription="@string/app_name" /> <!--이미지 설명 없어도 무방-->
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
@@ -25,7 +27,7 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/login_edt_id"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:hint="ID">
 
         </com.google.android.material.textfield.TextInputEditText>
@@ -39,8 +41,9 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/login_edt_pw"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="PASSWORD">
+            android:layout_height="48dp"
+            android:hint="PASSWORD"
+            tools:ignore="TextContrastCheck">
 
         </com.google.android.material.textfield.TextInputEditText>
     </com.google.android.material.textfield.TextInputLayout>
@@ -66,6 +69,7 @@
         android:layout_height="wrap_content"
         android:background="@drawable/btn_skyblue"
         android:text="create account"
-        android:textColor="#ffffff" />
+        android:textColor="#ffffff"
+        tools:ignore="TextContrastCheck" />
 
 </LinearLayout>
